@@ -4,6 +4,7 @@ import type { DataSource, Quote } from "@/lib/market/types";
 import { fmtChange, fmtPct, fmtPrice } from "@/lib/format";
 import ModeBadge from "./ModeBadge";
 import PriceFlash from "./PriceFlash";
+import WatchButton from "./WatchButton";
 
 interface Props {
   symbol: string;
@@ -22,7 +23,10 @@ export default function StockHeader({ symbol, name, quote: q, mode }: Props) {
           <h1 className="text-2xl font-semibold font-mono">{symbol}</h1>
           {name && <p className="text-sm text-muted">{name}</p>}
         </div>
-        <ModeBadge mode={mode} />
+        <div className="flex items-center gap-2">
+          <WatchButton symbol={symbol} />
+          <ModeBadge mode={mode} />
+        </div>
       </div>
       {q ? (
         <>

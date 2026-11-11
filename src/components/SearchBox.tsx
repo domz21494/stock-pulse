@@ -48,7 +48,7 @@ export default function SearchBox() {
   const shown = q.trim() ? results : [];
 
   return (
-    <div ref={boxRef} className="relative ml-auto w-full max-w-xs">
+    <div ref={boxRef} className="relative order-last w-full sm:order-none sm:ml-auto sm:max-w-xs">
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import AlertEngine from "@/components/AlertEngine";
 import Header from "@/components/Header";
+import Toaster from "@/components/Toaster";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -20,6 +22,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-border py-4 text-center text-xs text-muted">
           StockPulse · Data for demo purposes, not financial advice.
         </footer>
+        <AlertEngine />
+        <Toaster />
       </body>
     </html>
   );
