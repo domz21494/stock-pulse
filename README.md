@@ -2,6 +2,8 @@
 
 A real-time stock market dashboard built with **Next.js 16**, featuring live-updating prices, interactive candlestick charts, price alerts with browser notifications, and AI-style technical insights.
 
+### 🔗 [Live demo → stock-pulse-pi-seven.vercel.app](https://stock-pulse-pi-seven.vercel.app)
+
 ![Dashboard](docs/dashboard.png)
 
 ## Features
