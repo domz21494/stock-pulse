@@ -4,6 +4,7 @@ import { useQuotes } from "@/hooks/useQuotes";
 import { useAlerts } from "@/lib/store";
 import AlertForm from "./AlertForm";
 import AlertList from "./AlertList";
+import InsightsPanel from "./InsightsPanel";
 import StockChart from "./StockChart";
 import StockHeader from "./StockHeader";
 
@@ -17,6 +18,7 @@ export default function StockDetail({ symbol, name }: { symbol: string; name?: s
     <div className="space-y-6">
       <StockHeader symbol={symbol} name={name} quote={quote} mode={mode} />
       <StockChart symbol={symbol} quote={quote} />
+      <InsightsPanel symbol={symbol} price={quote?.price} />
       <section className="rounded-lg border border-border bg-surface p-4 space-y-4">
         <h2 className="font-semibold">Price alerts</h2>
         <AlertForm symbol={symbol} price={quote?.price} />
