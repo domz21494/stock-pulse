@@ -1,8 +1,10 @@
 import "server-only";
 import { searchCatalog } from "./catalog";
-import { demoQuote } from "./demo";
+import { demoCandles, demoQuote } from "./demo";
 import { finnhubQuote, finnhubSearch } from "./finnhub";
-import type { DataSource, Quote, SymbolInfo } from "./types";
+import { RANGES, type RangeKey } from "./ranges";
+import { yahooCandles } from "./yahoo";
+import type { CandlesResponse, DataSource, Quote, SymbolInfo } from "./types";
 
 export function dataMode(): DataSource {
   return process.env.FINNHUB_API_KEY ? "live" : "demo";
@@ -34,4 +36,20 @@ export async function searchSymbols(q: string): Promise<SymbolInfo[]> {
     }
   }
   return searchCatalog(q);
+}
+
+export async function getCandles(symbol: string, range: RangeKey): Promise<CandlesResponse> {
+  const cfg = RANGES[range];
+  const base = { symbol, range, barSeconds: cfg.barSeconds };
+  if (dataMode() === "demo") {
+    return { ...base, source: "demo", candles: demoCandles(symbol, cfg.barSeconds, cfg.bars) };
+  }
+  try {
+    const candles = await yahooCandles(symbol, cfg.yahoo.range, cfg.yahoo.interval);
+    return { ...base, source: "live", candles };
+  } catch (err) {
+    // Never mix simulated history into real prices; the chart builds from live ticks instead.
+    console.warn(`[market] history unavailable for ${symbol}:`, (err as Error).message);
+    return { ...base, source: "none", candles: [] };
+  }
 }

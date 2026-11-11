@@ -1,13 +1,18 @@
 "use client";
 
-import { useQuotes } from "@/hooks/useQuotes";
+import type { DataSource, Quote } from "@/lib/market/types";
 import { fmtChange, fmtPct, fmtPrice } from "@/lib/format";
 import ModeBadge from "./ModeBadge";
 import PriceFlash from "./PriceFlash";
 
-export default function StockHeader({ symbol, name }: { symbol: string; name?: string }) {
-  const { quotes, mode } = useQuotes([symbol]);
-  const q = quotes[symbol];
+interface Props {
+  symbol: string;
+  name?: string;
+  quote?: Quote;
+  mode: DataSource | null;
+}
+
+export default function StockHeader({ symbol, name, quote: q, mode }: Props) {
   const up = (q?.change ?? 0) >= 0;
 
   return (

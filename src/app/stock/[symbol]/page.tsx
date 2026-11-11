@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import StockHeader from "@/components/StockHeader";
+import StockDetail from "@/components/StockDetail";
 import { CATALOG, FEATURED, isValidSymbol } from "@/lib/market/catalog";
 
 type Params = Promise<{ symbol: string }>;
@@ -20,12 +20,7 @@ async function StockView({ params }: { params: Params }) {
   const name = CATALOG.find((c) => c.symbol === symbol)?.name;
 
   return (
-    <div className="space-y-6">
-      <StockHeader symbol={symbol} name={name} />
-      <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-        Live chart coming in step 3
-      </div>
-    </div>
+    <StockDetail symbol={symbol} name={name} />
   );
 }
 

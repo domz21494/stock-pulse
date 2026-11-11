@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import type { Quote } from "@/lib/market/types";
 import { fmtPct } from "@/lib/format";
 import PriceFlash from "./PriceFlash";
+import Sparkline from "./Sparkline";
 
 export default function QuoteCard({ symbol, quote }: { symbol: string; quote?: Quote }) {
   const up = (quote?.change ?? 0) >= 0;
@@ -20,6 +23,9 @@ export default function QuoteCard({ symbol, quote }: { symbol: string; quote?: Q
       </div>
       <div className="mt-2 text-xl">
         {quote ? <PriceFlash price={quote.price} /> : <div className="h-7 w-24 rounded bg-border animate-pulse" />}
+      </div>
+      <div className="mt-2">
+        <Sparkline symbol={symbol} price={quote?.price} />
       </div>
     </Link>
   );

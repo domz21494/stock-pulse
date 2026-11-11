@@ -25,3 +25,20 @@ export interface QuotesResponse {
   interval: number;
   quotes: Quote[];
 }
+
+export interface Candle {
+  /** Unix seconds, start of the bar */
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+export interface CandlesResponse {
+  symbol: string;
+  range: string;
+  barSeconds: number;
+  source: DataSource | "none";
+  candles: Candle[];
+}

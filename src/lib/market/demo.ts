@@ -32,39 +32,52 @@ function basePrice(symbol: string): number {
   return 20 + (hash(symbol) % 480);
 }
 
-const TICK_S = 5;
+/** Smoothly interpolated value noise in [-0.5, 0.5] at a given time scale. */
+function valueNoise(seed: number, d: number, scaleS: number): number {
+  const k = Math.floor(d / scaleS);
+  const f = d / scaleS - k;
+  const s = f * f * (3 - 2 * f);
+  return (rand(seed, k) - 0.5) * (1 - s) + (rand(seed, k + 1) - 0.5) * s;
+}
+
+/**
+ * Fractal noise: irregular moves layered from multi-week trends down to
+ * 5-second ticks, so charts look like a market rather than a sine wave.
+ */
+const OCTAVES: [scaleS: number, amplitude: number][] = [
+  [21 * 86400, 0.22],
+  [5 * 86400, 0.1],
+  [86400, 0.045],
+  [6 * 3600, 0.022],
+  [3600, 0.011],
+  [15 * 60, 0.005],
+  [3 * 60, 0.0025],
+  [5, 0.0012],
+];
 
 export function demoPrice(symbol: string, tMs: number): number {
   const seed = hash(symbol);
   const d = tMs / 1000;
-  const phase = (k: number) => rand(seed, 1000 + k) * Math.PI * 2;
-  const amp = (k: number, a: number) => a * (0.6 + 0.8 * rand(seed, 2000 + k));
-
-  const wave =
-    amp(1, 0.06) * Math.sin((2 * Math.PI * d) / (6 * 86400) + phase(1)) +
-    amp(2, 0.015) * Math.sin((2 * Math.PI * d) / (4 * 3600) + phase(2)) +
-    amp(3, 0.005) * Math.sin((2 * Math.PI * d) / (25 * 60) + phase(3));
-
-  // Smoothly interpolated value noise for tick-level jitter
-  const k = Math.floor(d / TICK_S);
-  const f = d / TICK_S - k;
-  const s = f * f * (3 - 2 * f);
-  const n = (rand(seed, k) - 0.5) * (1 - s) + (rand(seed, k + 1) - 0.5) * s;
-
-  const price = basePrice(symbol) * (1 + wave + n * 0.005);
+  let drift = 0;
+  OCTAVES.forEach(([scale, amp], i) => {
+    // Offset each octave so their grid points don't line up
+    drift += amp * valueNoise((seed + i * 7919) >>> 0, d + rand(seed, 500 + i) * scale, scale);
+  });
+  const price = basePrice(symbol) * Math.exp(drift);
   return Math.round(price * 100) / 100;
 }
 
 export function demoQuote(symbol: string, now = Date.now()): Quote {
-  const dayStart = new Date(now);
-  dayStart.setUTCHours(0, 0, 0, 0);
-  const open = demoPrice(symbol, dayStart.getTime());
-  const prevClose = demoPrice(symbol, dayStart.getTime() - 60_000);
+  // Demo markets trade 24/7, so "today" is the rolling last 24 hours —
+  // the same window the 1D chart and sparklines show.
+  const dayStart = now - 86_400_000;
+  const prevClose = demoPrice(symbol, dayStart);
+  const open = demoPrice(symbol, dayStart + 60_000);
   const price = demoPrice(symbol, now);
 
   let high = Math.max(open, price);
   let low = Math.min(open, price);
-  for (let t = dayStart.getTime(); t < now; t += 5 * 60_000) {
+  for (let t = dayStart; t < now; t += 60_000) {
     const p = demoPrice(symbol, t);
     if (p > high) high = p;
     if (p < low) low = p;
@@ -83,4 +96,26 @@ export function demoQuote(symbol: string, now = Date.now()): Quote {
     timestamp: now,
     source: "demo",
   };
+}
+
+export function demoCandles(symbol: string, barSeconds: number, bars: number, now = Date.now()) {
+  const nowS = Math.floor(now / 1000);
+  const lastStart = Math.floor(nowS / barSeconds) * barSeconds;
+  const samples = 12;
+  const candles = [];
+  for (let i = bars - 1; i >= 0; i--) {
+    const start = lastStart - i * barSeconds;
+    const end = Math.min(start + barSeconds, nowS);
+    let high = -Infinity;
+    let low = Infinity;
+    const open = demoPrice(symbol, start * 1000);
+    const close = demoPrice(symbol, end * 1000);
+    for (let j = 0; j <= samples; j++) {
+      const p = demoPrice(symbol, (start + ((end - start) * j) / samples) * 1000);
+      if (p > high) high = p;
+      if (p < low) low = p;
+    }
+    candles.push({ time: start, open, high: Math.max(high, open, close), low: Math.min(low, open, close), close });
+  }
+  return candles;
 }
