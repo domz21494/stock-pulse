@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /step*.png
+/stockpulse-tour.mp4
+/stock-pulse.zip
